@@ -2,7 +2,6 @@ import { useEffect, useRef, useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Logo } from '../components/layout/Logo';
-import { ParticleField } from '../components/3d/ParticleField';
 import { Input } from '../components/ui/Input';
 import { Button } from '../components/ui/Button';
 import { useAuth } from '../context/AuthContext';
@@ -21,13 +20,13 @@ export default function Login() {
   const [errors, setErrors] = useState({});
   const [serverError, setServerError] = useState(null);
   const [info, setInfo] = useState(null);
+  const [forgot, setForgot] = useState(false);
   const [loading, setLoading] = useState(false);
   const [resendIn, setResendIn] = useState(0);
-  const [blockedIp, setBlockedIp] = useState(null);
   const codeRef = useRef(null);
 
   useEffect(() => {
-    document.title = 'Login · Le Gourmet';
+    document.title = 'Connexion · Le Gourmet';
   }, []);
 
   useEffect(() => {
@@ -44,10 +43,10 @@ export default function Login() {
 
   const validateCredentials = () => {
     const e = {};
-    if (!email.trim()) e.email = 'Email is required.';
-    else if (!/^\S+@\S+\.\S+$/.test(email)) e.email = 'Enter a valid email address.';
-    if (!password) e.password = 'Password is required.';
-    else if (password.length < 6) e.password = 'Password must be at least 6 characters.';
+    if (!email.trim()) e.email = "L'adresse email est requise.";
+    else if (!/^\S+@\S+\.\S+$/.test(email)) e.email = 'Entrez une adresse email valide.';
+    if (!password) e.password = 'Le mot de passe est requis.';
+    else if (password.length < 6) e.password = 'Le mot de passe doit contenir au moins 6 caractères.';
     setErrors(e);
     return Object.keys(e).length === 0;
   };
@@ -57,7 +56,7 @@ export default function Login() {
     if (!validateCredentials() || loading) return;
     setLoading(true);
     setServerError(null);
-    setBlockedIp(null);
+    setForgot(false);
     setInfo(null);
     try {
       const data = await requestOtp(email.trim(), password);
@@ -68,10 +67,9 @@ export default function Login() {
     } catch (err) {
       if (err instanceof ApiError && err.code === 'IP_BLOCKED') {
         const ip = err.details?.ip || 'unknown';
-        setBlockedIp(ip);
         setTimeout(() => navigate('/blocked', { state: { from: ip }, replace: true }), 900);
       } else {
-        setServerError(err.message || 'Request failed.');
+        setServerError(err.message || 'La demande a échoué.');
       }
     } finally {
       setLoading(false);
@@ -81,7 +79,7 @@ export default function Login() {
   const handleVerify = async (ev) => {
     ev.preventDefault();
     if (!/^\d{6}$/.test(code)) {
-      setErrors({ code: 'Enter the 6-digit code.' });
+      setErrors({ code: 'Entrez le code à 6 chiffres.' });
       return;
     }
     if (loading) return;
@@ -92,7 +90,7 @@ export default function Login() {
       const data = await completeLogin(pendingToken, code.trim());
       navigate(data.user.role === 'admin' ? ADMIN_PATH : '/', { replace: true });
     } catch (err) {
-      setServerError(err.message || 'Verification failed.');
+      setServerError(err.message || 'La vérification a échoué.');
       setCode('');
       if (codeRef.current) codeRef.current.focus();
     } finally {
@@ -105,224 +103,195 @@ export default function Login() {
     setLoading(true);
     setServerError(null);
     try {
-      const data = await apiResend();
+      const { api } = await import('../api/client');
+      await api.resendOtp(pendingToken);
       setInfo('Un nouveau code a été envoyé.');
       setCode('');
       setResendIn(30);
     } catch (err) {
-      setServerError(err.message || 'Resend failed.');
+      setServerError(err.message || 'Le renvoi a échoué.');
     } finally {
       setLoading(false);
     }
   };
 
-  const apiResend = async () => {
-    const { api } = await import('../api/client');
-    return api.resendOtp(pendingToken);
+  const backToCredentials = () => {
+    setStep('credentials');
+    setServerError(null);
+    setInfo(null);
+    setForgot(false);
+    setCode('');
   };
 
   return (
-    <div className="page restaurant-theme" style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', position: 'relative', overflow: 'hidden' }}>
-      <div style={{ position: 'fixed', inset: 0, zIndex: 0 }}>
-        <ParticleField count={160} />
-      </div>
+    <div className="page login-page" style={{ minHeight: '100vh', display: 'grid', placeItems: 'center', padding: 24, position: 'relative' }}>
+      <div className="login-blob login-blob-1" />
+      <div className="login-blob login-blob-2" />
 
-      <div style={{ position: 'relative', zIndex: 2, padding: 20 }}>
-        <Logo brand="restaurant" />
-      </div>
+      <motion.div
+        className="login-card"
+        initial={{ opacity: 0, y: 24 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, ease: 'easeOut' }}
+      >
+        <div className="login-brand">
+          <Logo brand="restaurant" />
+        </div>
 
-      <div style={{ flex: 1, display: 'grid', placeItems: 'center', padding: '0 20px 60px', position: 'relative', zIndex: 2 }}>
-        <motion.div
-          className="card corner-frame"
-          initial={{ opacity: 0, y: 30, scale: 0.97 }}
-          animate={{ opacity: 1, y: 0, scale: 1 }}
-          transition={{ duration: 0.6, ease: 'easeOut' }}
-          style={{
-            width: '100%',
-            maxWidth: 430,
-            padding: '38px 34px',
-            position: 'relative',
-            overflow: 'hidden',
-          }}
-        >
-          <span className="scan-line" />
+        <h1 className="login-title">{step === 'otp' ? 'Vérification' : 'Connexion'}</h1>
+        <p className="login-sub">
+          {step === 'otp' ? 'Entrez le code reçu par email' : 'Accédez à votre espace membre Le Gourmet'}
+        </p>
 
-          <div style={{ textAlign: 'center', marginBottom: 28 }}>
-            <div
-              style={{
-                width: 58,
-                height: 58,
-                margin: '0 auto 16px',
-                borderRadius: 16,
-                display: 'grid',
-                placeItems: 'center',
-                background: 'var(--gradient-main)',
-                color: '#04121a',
-                fontSize: 24,
-                boxShadow: '0 0 40px rgba(0,229,255,0.35)',
-              }}
+        <AnimatePresence mode="wait">
+          {step === 'credentials' ? (
+            <motion.form
+              key="creds"
+              onSubmit={handleRequestOtp}
+              initial={{ opacity: 0, x: -12 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -12 }}
+              noValidate
             >
-              {step === 'otp' ? '✉' : '🍽'}
-            </div>
-            <h2 style={{ fontSize: 26 }}>{step === 'otp' ? 'Vérification' : 'Bienvenue'}</h2>
-            <p className="mono" style={{ color: 'var(--text-3)', fontSize: 13, marginTop: 6 }}>
-              {step === 'otp' ? 'CODE RECU PAR EMAIL' : 'ESPACE MEMBRE · LE GOURMET'}
-            </p>
-          </div>
+              <AnimatePresence>
+                {serverError && (
+                  <motion.div
+                    className="login-alert login-alert-error"
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: 'auto' }}
+                    exit={{ opacity: 0, height: 0 }}
+                  >
+                    ⚠ {serverError}
+                  </motion.div>
+                )}
+                {forgot && (
+                  <motion.div
+                    className="login-alert login-alert-info"
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: 'auto' }}
+                    exit={{ opacity: 0, height: 0 }}
+                  >
+                    ℹ Pour réinitialiser votre mot de passe, contactez l'administrateur à{' '}
+                    <a href="mailto:contact@legourmet.fr" style={{ color: 'inherit', fontWeight: 600 }}>
+                      contact@legourmet.fr
+                    </a>
+                    .
+                  </motion.div>
+                )}
+              </AnimatePresence>
 
-          <AnimatePresence mode="wait">
-            {step === 'credentials' ? (
-              <motion.div key="creds" initial={{ opacity: 0, x: -16 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -16 }}>
-                <AnimatePresence>
-                  {serverError && (
-                    <motion.div
-                      initial={{ opacity: 0, height: 0 }}
-                      animate={{ opacity: 1, height: 'auto' }}
-                      exit={{ opacity: 0, height: 0 }}
-                      style={{
-                        marginBottom: 18,
-                        padding: '12px 14px',
-                        borderRadius: 10,
-                        background: 'rgba(255,77,109,0.1)',
-                        border: '1px solid rgba(255,77,109,0.3)',
-                        color: 'var(--danger)',
-                        fontSize: 13.5,
-                      }}
-                    >
-                      ⚠ {serverError}
-                    </motion.div>
-                  )}
-                </AnimatePresence>
+              <div className="login-fields">
+                <Input
+                  label="Adresse email"
+                  type="email"
+                  placeholder="votre@gmail.com"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  error={errors.email}
+                  autoComplete="email"
+                />
+                <Input
+                  label="Mot de passe"
+                  type="password"
+                  placeholder="Votre mot de passe"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  error={errors.password}
+                  autoComplete="current-password"
+                />
+              </div>
 
-                <form onSubmit={handleRequestOtp} style={{ display: 'flex', flexDirection: 'column', gap: 18 }} noValidate>
-                  <Input
-                    label="Email"
-                    type="email"
-                    placeholder="votre@gmail.com"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    error={errors.email}
-                    autoComplete="email"
-                  />
-                  <Input
-                    label="Mot de passe"
-                    type="password"
-                    placeholder="••••••••"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    error={errors.password}
-                    autoComplete="current-password"
-                  />
+              <div className="login-row">
+                <label className="login-check">
+                  <input type="checkbox" /> Se souvenir de moi
+                </label>
+                <button type="button" className="login-link" onClick={() => setForgot((f) => !f)}>
+                  Mot de passe oublié&nbsp;?
+                </button>
+              </div>
 
-                  <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-                    <span className="mono" style={{ fontSize: 12, color: 'var(--text-3)' }}>
-                      CONNEXION SECURISEE + OTP EMAIL
-                    </span>
-                  </div>
+              <Button type="submit" size="lg" loading={loading} className="login-btn" style={{ width: '100%' }}>
+                {loading ? 'Envoi du code…' : 'Se connecter'}
+              </Button>
+            </motion.form>
+          ) : (
+            <motion.form
+              key="otp"
+              onSubmit={handleVerify}
+              initial={{ opacity: 0, x: 12 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: 12 }}
+              noValidate
+            >
+              <AnimatePresence>
+                {info && (
+                  <motion.div
+                    className="login-alert login-alert-success"
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: 'auto' }}
+                    exit={{ opacity: 0, height: 0 }}
+                  >
+                    ✓ {info}
+                  </motion.div>
+                )}
+                {serverError && (
+                  <motion.div
+                    className="login-alert login-alert-error"
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: 'auto' }}
+                    exit={{ opacity: 0, height: 0 }}
+                  >
+                    ⚠ {serverError}
+                  </motion.div>
+                )}
+              </AnimatePresence>
 
-                  <Button type="submit" size="lg" loading={loading} style={{ width: '100%' }}>
-                    {loading ? 'Envoi du code…' : 'Continuer'}
-                  </Button>
-                </form>
-              </motion.div>
-            ) : (
-              <motion.div key="otp" initial={{ opacity: 0, x: 16 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 16 }}>
-                <AnimatePresence>
-                  {info && (
-                    <motion.div
-                      initial={{ opacity: 0, height: 0 }}
-                      animate={{ opacity: 1, height: 'auto' }}
-                      exit={{ opacity: 0, height: 0 }}
-                      style={{
-                        marginBottom: 18,
-                        padding: '12px 14px',
-                        borderRadius: 10,
-                        background: 'rgba(0,229,255,0.08)',
-                        border: '1px solid rgba(0,229,255,0.3)',
-                        color: 'var(--primary)',
-                        fontSize: 13.5,
-                      }}
-                    >
-                      ✓ {info}
-                    </motion.div>
-                  )}
+              <div className="login-fields">
+                <Input
+                  label="Code à 6 chiffres"
+                  inputMode="numeric"
+                  pattern="[0-9]*"
+                  maxLength={6}
+                  placeholder="••••••"
+                  value={code}
+                  onChange={(e) => setCode(e.target.value.replace(/\D/g, ''))}
+                  error={errors.code}
+                  autoComplete="one-time-code"
+                  ref={codeRef}
+                  style={{ fontSize: 24, letterSpacing: 10, textAlign: 'center' }}
+                />
+              </div>
 
-                  {serverError && (
-                    <motion.div
-                      initial={{ opacity: 0, height: 0 }}
-                      animate={{ opacity: 1, height: 'auto' }}
-                      exit={{ opacity: 0, height: 0 }}
-                      style={{
-                        marginBottom: 18,
-                        padding: '12px 14px',
-                        borderRadius: 10,
-                        background: 'rgba(255,77,109,0.1)',
-                        border: '1px solid rgba(255,77,109,0.3)',
-                        color: 'var(--danger)',
-                        fontSize: 13.5,
-                      }}
-                    >
-                      ⚠ {serverError}
-                    </motion.div>
-                  )}
+              <Button type="submit" size="lg" loading={loading} className="login-btn" style={{ width: '100%' }}>
+                {loading ? 'Vérification…' : 'Valider'}
+              </Button>
 
-                  <form onSubmit={handleVerify} style={{ display: 'flex', flexDirection: 'column', gap: 18 }} noValidate>
-                    <Input
-                      label="Code à 6 chiffres"
-                      inputMode="numeric"
-                      pattern="[0-9]*"
-                      maxLength={6}
-                      placeholder="••••••"
-                      value={code}
-                      onChange={(e) => setCode(e.target.value.replace(/\D/g, ''))}
-                      error={errors.code}
-                      autoComplete="one-time-code"
-                      ref={codeRef}
-                      style={{ fontSize: 22, letterSpacing: 8, textAlign: 'center' }}
-                    />
+              <div className="login-row login-row-otp">
+                <button type="button" className="login-link" onClick={backToCredentials}>
+                  ← Changer d'email
+                </button>
+                <button
+                  type="button"
+                  className="login-link"
+                  onClick={handleResend}
+                  disabled={resendIn > 0 || loading}
+                  style={{ color: resendIn > 0 ? '#9ca3af' : undefined, cursor: resendIn > 0 ? 'not-allowed' : 'pointer' }}
+                >
+                  {resendIn > 0 ? `Renvoyer (${resendIn}s)` : 'Renvoyer le code'}
+                </button>
+              </div>
+            </motion.form>
+          )}
+        </AnimatePresence>
 
-                    <Button type="submit" size="lg" loading={loading} style={{ width: '100%' }}>
-                      {loading ? 'Vérification…' : 'Se connecter'}
-                    </Button>
+        <p className="login-foot">
+          Connexion sécurisée · Un code est envoyé par email · Votre IP est enregistrée
+        </p>
+      </motion.div>
 
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 10 }}>
-                      <button
-                        type="button"
-                        onClick={() => { setStep('credentials'); setServerError(null); setInfo(null); setCode(''); }}
-                        className="mono"
-                        style={{ fontSize: 12, color: 'var(--text-3)' }}
-                      >
-                        ← Changer d'email
-                      </button>
-                      <button
-                        type="button"
-                        onClick={handleResend}
-                        disabled={resendIn > 0 || loading}
-                        className="mono"
-                        style={{ fontSize: 12, color: resendIn > 0 ? 'var(--text-3)' : 'var(--primary)' }}
-                      >
-                        {resendIn > 0 ? `Renvoyer (${resendIn}s)` : 'Renvoyer le code'}
-                      </button>
-                    </div>
-                  </form>
-                </AnimatePresence>
-              </motion.div>
-            )}
-          </AnimatePresence>
-
-          <div style={{ marginTop: 24, textAlign: 'center' }}>
-            <span className="mono" style={{ fontSize: 12, color: 'var(--text-3)' }}>
-              Votre IP est détectée automatiquement à la connexion
-            </span>
-          </div>
-        </motion.div>
-      </div>
-
-      <div style={{ position: 'relative', zIndex: 2, textAlign: 'center', paddingBottom: 26 }}>
-        <Link to="/" style={{ color: 'var(--text-3)', fontSize: 13 }}>
-          ← Retour à l'accueil
-        </Link>
-      </div>
+      <Link to="/" className="login-back">
+        ← Retour à l'accueil
+      </Link>
     </div>
   );
 }
