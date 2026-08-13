@@ -17,15 +17,18 @@ import {
 } from 'recharts';
 
 const TOOLTIP_STYLE = {
-  background: 'rgba(8,13,26,0.95)',
-  border: '1px solid rgba(120,160,255,0.25)',
+  background: '#ffffff',
+  border: '1px solid rgba(30,50,100,0.18)',
   borderRadius: 10,
   fontSize: 12,
   fontFamily: 'JetBrains Mono, monospace',
-  color: '#eaf2ff',
+  color: '#1a2333',
+  boxShadow: '0 8px 24px rgba(23,35,70,0.12)',
 };
 
-const AXIS = { stroke: 'rgba(120,160,255,0.28)', fontSize: 11, tickLine: false };
+const AXIS = { stroke: 'rgba(30,50,100,0.3)', fontSize: 11, tickLine: false };
+
+const GRID = { strokeDasharray: '3 6', stroke: 'rgba(30,50,100,0.08)', vertical: false };
 
 export function ConnectionsAreaChart({ data }) {
   return (
@@ -41,7 +44,7 @@ export function ConnectionsAreaChart({ data }) {
             <stop offset="100%" stopColor="#ff4d6d" stopOpacity={0.02} />
           </linearGradient>
         </defs>
-        <CartesianGrid strokeDasharray="3 6" stroke="rgba(120,160,255,0.1)" vertical={false} />
+        <CartesianGrid {...GRID} />
         <XAxis dataKey="day" {...AXIS} tickMargin={8} />
         <YAxis {...AXIS} allowDecimals={false} />
         <Tooltip contentStyle={TOOLTIP_STYLE} />
@@ -56,10 +59,10 @@ export function IpsBarChart({ data }) {
   return (
     <ResponsiveContainer width="100%" height={280}>
       <BarChart data={data} margin={{ top: 6, right: 6, left: -14, bottom: 0 }}>
-        <CartesianGrid strokeDasharray="3 6" stroke="rgba(120,160,255,0.1)" vertical={false} />
+        <CartesianGrid {...GRID} />
         <XAxis dataKey="ip_address" {...AXIS} tickMargin={8} />
         <YAxis {...AXIS} allowDecimals={false} />
-        <Tooltip contentStyle={TOOLTIP_STYLE} cursor={{ fill: 'rgba(0,229,255,0.06)' }} />
+        <Tooltip contentStyle={TOOLTIP_STYLE} cursor={{ fill: 'rgba(79,70,229,0.06)' }} />
         <Bar dataKey="total" name="Connections" fill="#7c4dff" radius={[5, 5, 0, 0]} maxBarSize={34} />
       </BarChart>
     </ResponsiveContainer>
@@ -89,7 +92,7 @@ export function EventsLineChart({ data }) {
   return (
     <ResponsiveContainer width="100%" height={240}>
       <LineChart data={data} margin={{ top: 6, right: 6, left: -14, bottom: 0 }}>
-        <CartesianGrid strokeDasharray="3 6" stroke="rgba(120,160,255,0.1)" vertical={false} />
+        <CartesianGrid {...GRID} />
         <XAxis dataKey="day" {...AXIS} tickMargin={8} />
         <YAxis {...AXIS} allowDecimals={false} />
         <Tooltip contentStyle={TOOLTIP_STYLE} />

@@ -49,7 +49,7 @@ export default function AdminOverview() {
           </p>
           <div style={{ display: 'grid', gap: 10, maxHeight: 300, overflowY: 'auto' }}>
             {((s.latest_events) || []).map((e) => (
-              <div key={e.id} style={{ display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'center', padding: '11px 12px', borderRadius: 10, background: 'rgba(255,255,255,0.02)', border: '1px solid var(--border)' }}>
+              <div key={e.id} style={{ display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'center', padding: '11px 12px', borderRadius: 10, background: '#f8fafc', border: '1px solid var(--border)' }}>
                 <div style={{ minWidth: 0 }}>
                   <div style={{ fontSize: 13.5, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{e.description}</div>
                   <span className="mono" style={{ fontSize: 11, color: 'var(--text-3)' }}>{e.ip_address}</span>
@@ -61,7 +61,7 @@ export default function AdminOverview() {
               </div>
             ))}
             {!s.latest_events && (
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '11px 12px', borderRadius: 10, background: 'rgba(255,255,255,0.02)' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '11px 12px', borderRadius: 10, background: '#f8fafc' }}>
                 <span style={{ fontSize: 13.5 }}>Successful login</span>
                 <Badge status="success">LOGIN SUCCESS</Badge>
               </div>

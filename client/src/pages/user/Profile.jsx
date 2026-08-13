@@ -34,7 +34,7 @@ export default function Profile() {
                 display: 'grid',
                 placeItems: 'center',
                 background: 'var(--gradient-main)',
-                color: '#04121a',
+                color: '#ffffff',
                 fontFamily: 'var(--font-display)',
                 fontSize: 26,
                 fontWeight: 700,
@@ -53,7 +53,7 @@ export default function Profile() {
               ['MEMBER SINCE', formatFullDate(user?.created_at)],
               ['ACCOUNT ID', user?.id],
             ].map(([k, v]) => (
-              <div key={k} style={{ display: 'flex', justifyContent: 'space-between', gap: 16, borderBottom: '1px solid rgba(120,160,255,0.08)', paddingBottom: 10 }}>
+              <div key={k} style={{ display: 'flex', justifyContent: 'space-between', gap: 16, borderBottom: '1px solid rgba(30,50,100,0.08)', paddingBottom: 10 }}>
                 <span className="mono" style={{ fontSize: 11, color: 'var(--text-3)', letterSpacing: '0.12em' }}>{k}</span>
                 <span className="mono" style={{ fontSize: 12.5, color: 'var(--text-1)', textAlign: 'right', wordBreak: 'break-all' }}>{v}</span>
               </div>
@@ -81,7 +81,7 @@ export default function Profile() {
                   justifyContent: 'space-between',
                   padding: '12px 14px',
                   borderRadius: 10,
-                  background: 'rgba(255,255,255,0.02)',
+                  background: '#f8fafc',
                   border: '1px solid var(--border)',
                 }}
               >

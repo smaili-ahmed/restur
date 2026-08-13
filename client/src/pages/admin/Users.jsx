@@ -82,7 +82,7 @@ export default function AdminUsers() {
                 <tr key={u.id}>
                   <td>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                      <div style={{ width: 34, height: 34, borderRadius: 10, display: 'grid', placeItems: 'center', background: 'var(--gradient-main)', color: '#04121a', fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 13 }}>
+                      <div style={{ width: 34, height: 34, borderRadius: 10, display: 'grid', placeItems: 'center', background: 'var(--gradient-main)', color: '#ffffff', fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 13 }}>
                         {initials(u.name)}
                       </div>
                       <div>

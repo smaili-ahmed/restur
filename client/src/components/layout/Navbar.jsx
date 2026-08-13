@@ -43,7 +43,7 @@ export function Navbar({ transparent = true }) {
         display: 'flex',
         alignItems: 'center',
         borderBottom: scrolled ? '1px solid var(--border)' : '1px solid transparent',
-        background: scrolled ? 'rgba(5,8,16,0.82)' : 'transparent',
+        background: scrolled ? 'rgba(255,255,255,0.85)' : 'transparent',
         backdropFilter: scrolled ? 'blur(18px)' : 'none',
         transition: 'background 0.3s ease, border-color 0.3s ease',
       }}
@@ -104,7 +104,7 @@ export function Navbar({ transparent = true }) {
               top: 'var(--nav-h)',
               left: 0,
               right: 0,
-              background: 'rgba(5,8,16,0.96)',
+              background: 'rgba(255,255,255,0.97)',
               borderBottom: '1px solid var(--border)',
               padding: '16px 24px 24px',
               display: 'flex',

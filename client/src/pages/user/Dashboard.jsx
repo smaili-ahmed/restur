@@ -55,12 +55,12 @@ export default function Dashboard() {
             </div>
             <Badge status={score >= 90 ? 'secure' : 'warning'}>{score >= 90 ? 'SECURE' : 'ATTENTION'}</Badge>
           </div>
-          <div style={{ height: 8, borderRadius: 99, background: 'rgba(255,255,255,0.06)', overflow: 'hidden' }}>
+          <div style={{ height: 8, borderRadius: 99, background: '#e7ebf4', overflow: 'hidden' }}>
             <motion.div
               initial={{ width: 0 }}
               animate={{ width: `${score}%` }}
               transition={{ duration: 1.2, ease: 'easeOut', delay: 0.3 }}
-              style={{ height: '100%', background: 'var(--gradient-main)', borderRadius: 99, boxShadow: '0 0 16px rgba(0,229,255,0.5)' }}
+              style={{ height: '100%', background: 'var(--gradient-main)', borderRadius: 99, boxShadow: '0 0 16px rgba(79,70,229,0.45)' }}
             />
           </div>
           <p style={{ color: 'var(--text-3)', fontSize: 13, marginTop: 16 }}>
@@ -80,7 +80,7 @@ export default function Dashboard() {
               ['OPERATING SYSTEM', os],
               ['TIMESTAMP', formatDate(lastConn?.created_at)],
             ].map(([k, v]) => (
-              <div key={k} style={{ display: 'flex', justifyContent: 'space-between', gap: 16, borderBottom: '1px solid rgba(120,160,255,0.08)', paddingBottom: 10 }}>
+              <div key={k} style={{ display: 'flex', justifyContent: 'space-between', gap: 16, borderBottom: '1px solid rgba(30,50,100,0.08)', paddingBottom: 10 }}>
                 <span className="mono" style={{ fontSize: 11, color: 'var(--text-3)', letterSpacing: '0.12em' }}>{k}</span>
                 <span className="mono" style={{ fontSize: 13, color: 'var(--text-1)', textAlign: 'right', wordBreak: 'break-all' }}>{v}</span>
               </div>

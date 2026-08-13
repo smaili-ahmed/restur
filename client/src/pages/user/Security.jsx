@@ -58,7 +58,7 @@ export default function Security() {
                   justifyContent: 'space-between',
                   padding: '13px 16px',
                   borderRadius: 12,
-                  background: 'rgba(255,255,255,0.02)',
+                  background: '#f8fafc',
                   border: '1px solid var(--border)',
                 }}
               >

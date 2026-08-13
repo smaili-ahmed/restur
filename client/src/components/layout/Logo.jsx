@@ -8,7 +8,7 @@ export function Logo({ to = '/', size = 34, brand = 'cyberguard' }) {
       <svg width={size} height={size} viewBox="0 0 32 32" fill="none">
         <defs>
           <linearGradient id="lg" x1="0" y1="0" x2="1" y2="1">
-            <stop offset="0%" stopColor="#00e5ff" />
+            <stop offset="0%" stopColor="#4f46e5" />
             <stop offset="100%" stopColor="#7c4dff" />
           </linearGradient>
         </defs>

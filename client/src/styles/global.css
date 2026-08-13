@@ -1,37 +1,37 @@
 :root {
-  --bg-0: #04060c;
-  --bg-1: #070b15;
-  --bg-2: #0b1120;
-  --bg-3: #101a30;
+  --bg-0: #f4f6fb;
+  --bg-1: #eef1f7;
+  --bg-2: #e7ebf4;
+  --bg-3: #dce2ee;
 
-  --surface: rgba(16, 24, 44, 0.6);
-  --surface-strong: rgba(18, 28, 52, 0.85);
-  --border: rgba(120, 160, 255, 0.14);
-  --border-strong: rgba(120, 160, 255, 0.28);
+  --surface: rgba(255, 255, 255, 0.78);
+  --surface-strong: rgba(255, 255, 255, 0.95);
+  --border: rgba(30, 50, 100, 0.1);
+  --border-strong: rgba(30, 50, 100, 0.2);
 
-  --text-1: #eaf2ff;
-  --text-2: #9fb3d1;
-  --text-3: #5c6f8f;
+  --text-1: #1a2333;
+  --text-2: #4b5a75;
+  --text-3: #8494ad;
 
-  --primary: #00e5ff;
+  --primary: #4f46e5;
   --primary-2: #7c4dff;
-  --accent: #00ffc8;
-  --warn: #ffb020;
-  --danger: #ff4d6d;
-  --ok: #00ffc8;
+  --accent: #0ea5e9;
+  --warn: #d97706;
+  --danger: #e11d48;
+  --ok: #059669;
 
-  --gradient-main: linear-gradient(135deg, #00e5ff 0%, #7c4dff 100%);
-  --gradient-glow: radial-gradient(circle at 30% 20%, rgba(0, 229, 255, 0.18), transparent 55%),
-    radial-gradient(circle at 80% 70%, rgba(124, 77, 255, 0.16), transparent 55%);
+  --gradient-main: linear-gradient(135deg, #4f46e5 0%, #7c4dff 100%);
+  --gradient-glow: radial-gradient(circle at 30% 20%, rgba(79, 70, 229, 0.1), transparent 55%),
+    radial-gradient(circle at 80% 70%, rgba(124, 77, 255, 0.08), transparent 55%);
 
   --radius-s: 8px;
   --radius-m: 14px;
   --radius-l: 22px;
   --radius-xl: 32px;
 
-  --shadow-s: 0 4px 20px rgba(0, 0, 0, 0.35);
-  --shadow-m: 0 10px 40px rgba(0, 0, 0, 0.45);
-  --shadow-glow: 0 0 40px rgba(0, 229, 255, 0.18);
+  --shadow-s: 0 4px 16px rgba(23, 35, 70, 0.08);
+  --shadow-m: 0 12px 40px rgba(23, 35, 70, 0.12);
+  --shadow-glow: 0 0 30px rgba(79, 70, 229, 0.14);
 
   --font-display: 'Space Grotesk', sans-serif;
   --font-body: 'Inter', sans-serif;
@@ -119,11 +119,11 @@ h4 {
   background: var(--bg-1);
 }
 ::-webkit-scrollbar-thumb {
-  background: rgba(120, 160, 255, 0.2);
+  background: rgba(79, 70, 229, 0.25);
   border-radius: 99px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(120, 160, 255, 0.35);
+  background: rgba(79, 70, 229, 0.4);
 }
 
 .mono {
@@ -193,21 +193,21 @@ h4 {
 }
 .btn-primary {
   background: var(--gradient-main);
-  color: #04121a;
-  box-shadow: 0 6px 24px rgba(0, 229, 255, 0.28);
+  color: #ffffff;
+  box-shadow: 0 6px 24px rgba(79, 70, 229, 0.3);
 }
 .btn-primary:hover:not(:disabled) {
-  box-shadow: 0 8px 34px rgba(0, 229, 255, 0.42);
+  box-shadow: 0 8px 34px rgba(79, 70, 229, 0.45);
   transform: translateY(-1px);
 }
 .btn-ghost {
   border: 1px solid var(--border-strong);
   color: var(--text-1);
-  background: rgba(255, 255, 255, 0.03);
+  background: #ffffff;
 }
 .btn-ghost:hover:not(:disabled) {
   border-color: var(--primary);
-  box-shadow: 0 0 24px rgba(0, 229, 255, 0.16);
+  box-shadow: 0 0 24px rgba(79, 70, 229, 0.14);
   transform: translateY(-1px);
 }
 .btn-danger {
@@ -293,8 +293,8 @@ h4 {
   width: 100%;
   padding: 13px 16px;
   border-radius: 12px;
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid var(--border);
+  background: #ffffff;
+  border: 1px solid var(--border-strong);
   color: var(--text-1);
   font-size: 14px;
   outline: none;
@@ -302,7 +302,7 @@ h4 {
 }
 .input:focus {
   border-color: var(--primary);
-  box-shadow: 0 0 0 3px rgba(0, 229, 255, 0.14);
+  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.14);
 }
 .input::placeholder {
   color: var(--text-3);
@@ -311,7 +311,7 @@ h4 {
   border-color: var(--danger);
 }
 .input-error:focus {
-  box-shadow: 0 0 0 3px rgba(255, 77, 109, 0.14);
+  box-shadow: 0 0 0 3px rgba(225, 29, 72, 0.14);
 }
 .field-error {
   font-size: 12px;
@@ -352,9 +352,9 @@ h4 {
   place-items: center;
   font-size: 20px;
   margin-bottom: 16px;
-  background: rgba(0, 229, 255, 0.1);
+  background: rgba(79, 70, 229, 0.1);
   color: var(--primary);
-  border: 1px solid rgba(0, 229, 255, 0.2);
+  border: 1px solid rgba(79, 70, 229, 0.2);
 }
 .stat-card .stat-value {
   font-family: var(--font-display);
@@ -392,7 +392,7 @@ h4 {
 }
 .table td {
   padding: 13px 16px;
-  border-bottom: 1px solid rgba(120, 160, 255, 0.07);
+  border-bottom: 1px solid rgba(30, 50, 100, 0.06);
   color: var(--text-2);
   vertical-align: middle;
 }
@@ -400,7 +400,7 @@ h4 {
   transition: background 0.2s ease;
 }
 .table tbody tr:hover {
-  background: rgba(0, 229, 255, 0.03);
+  background: rgba(79, 70, 229, 0.04);
 }
 .table .cell-strong {
   color: var(--text-1);
@@ -412,7 +412,7 @@ h4 {
   width: 22px;
   height: 22px;
   border-radius: 50%;
-  border: 2.5px solid rgba(255, 255, 255, 0.15);
+  border: 2.5px solid rgba(30, 50, 100, 0.14);
   border-top-color: var(--primary);
   animation: spin 0.7s linear infinite;
 }
@@ -440,7 +440,7 @@ h4 {
   position: fixed;
   inset: 0;
   z-index: 100;
-  background: rgba(3, 5, 12, 0.72);
+  background: rgba(23, 35, 70, 0.45);
   backdrop-filter: blur(6px);
   display: grid;
   place-items: center;
@@ -525,7 +525,7 @@ h4 {
   font-size: 12px;
   font-family: var(--font-mono);
   color: var(--text-2);
-  background: rgba(255, 255, 255, 0.03);
+  background: rgba(79, 70, 229, 0.04);
 }
 
 .grid {
@@ -598,7 +598,7 @@ h4 {
   position: absolute;
   width: 22px;
   height: 22px;
-  border: 2px solid rgba(0, 229, 255, 0.5);
+  border: 2px solid rgba(79, 70, 229, 0.45);
   border-radius: 3px;
 }
 .corner-frame::before {
@@ -616,32 +616,32 @@ h4 {
 
 /* ── Restaurant theme (public site only) ────── */
 .restaurant-theme {
-  --bg-0: #0b0805;
-  --bg-1: #120d08;
-  --bg-2: #18110a;
-  --bg-3: #201609;
+  --bg-0: #faf7f1;
+  --bg-1: #f4eee2;
+  --bg-2: #ede4d3;
+  --bg-3: #e3d6c0;
 
-  --surface: rgba(32, 22, 10, 0.6);
-  --surface-strong: rgba(28, 19, 9, 0.92);
-  --border: rgba(228, 186, 112, 0.16);
-  --border-strong: rgba(228, 186, 112, 0.34);
+  --surface: rgba(255, 255, 255, 0.78);
+  --surface-strong: rgba(255, 255, 255, 0.95);
+  --border: rgba(140, 100, 50, 0.14);
+  --border-strong: rgba(140, 100, 50, 0.28);
 
-  --text-1: #f6ecd9;
-  --text-2: #cdbb9d;
-  --text-3: #8d7a5d;
+  --text-1: #2a2015;
+  --text-2: #6b5a43;
+  --text-3: #a08a6b;
 
-  --primary: #e3b04b;
+  --primary: #b8860b;
   --primary-2: #8a6d3b;
-  --accent: #f0c87a;
-  --warn: #ffb020;
-  --danger: #ff6b4a;
-  --ok: #cfe6a6;
+  --accent: #c99a2e;
+  --warn: #d97706;
+  --danger: #d5452f;
+  --ok: #4d7c0f;
 
-  --gradient-main: linear-gradient(135deg, #f0c87a 0%, #b8860b 100%);
-  --gradient-glow: radial-gradient(circle at 25% 20%, rgba(227, 176, 75, 0.14), transparent 55%),
-    radial-gradient(circle at 80% 75%, rgba(140, 90, 20, 0.18), transparent 55%);
+  --gradient-main: linear-gradient(135deg, #d4a643 0%, #a06a16 100%);
+  --gradient-glow: radial-gradient(circle at 25% 20%, rgba(184, 134, 11, 0.12), transparent 55%),
+    radial-gradient(circle at 80% 75%, rgba(160, 106, 22, 0.14), transparent 55%);
 
-  --shadow-glow: 0 0 40px rgba(227, 176, 75, 0.2);
+  --shadow-glow: 0 0 40px rgba(184, 134, 11, 0.18);
 
   --font-display: 'Cormorant Garamond', 'Playfair Display', serif;
   background: var(--bg-0);
@@ -656,23 +656,23 @@ h4 {
 }
 
 .restaurant-theme ::selection {
-  background: rgba(227, 176, 75, 0.3);
+  background: rgba(184, 134, 11, 0.3);
 }
 
 .restaurant-theme .btn-primary {
-  color: #1c1306;
-  box-shadow: 0 6px 26px rgba(227, 176, 75, 0.3);
+  color: #ffffff;
+  box-shadow: 0 6px 26px rgba(160, 106, 22, 0.3);
 }
 .restaurant-theme .btn-primary:hover:not(:disabled) {
-  box-shadow: 0 10px 38px rgba(227, 176, 75, 0.45);
+  box-shadow: 0 10px 38px rgba(160, 106, 22, 0.45);
 }
 .restaurant-theme .btn-ghost:hover:not(:disabled) {
   border-color: var(--primary);
-  box-shadow: 0 0 26px rgba(227, 176, 75, 0.18);
+  box-shadow: 0 0 26px rgba(184, 134, 11, 0.16);
 }
 .restaurant-theme .input:focus {
   border-color: var(--primary);
-  box-shadow: 0 0 0 3px rgba(227, 176, 75, 0.16);
+  box-shadow: 0 0 0 3px rgba(184, 134, 11, 0.16);
 }
 .restaurant-theme .scan-line {
   background: linear-gradient(90deg, transparent, var(--primary), transparent);
@@ -680,13 +680,13 @@ h4 {
 }
 .restaurant-theme .corner-frame::before,
 .restaurant-theme .corner-frame::after {
-  border-color: rgba(227, 176, 75, 0.5);
+  border-color: rgba(184, 134, 11, 0.45);
 }
 .restaurant-theme .spinner {
   border-top-color: var(--primary);
 }
 .restaurant-theme .pill {
-  background: rgba(240, 200, 122, 0.04);
+  background: rgba(184, 134, 11, 0.04);
 }
 
 .restaurant-serif {
