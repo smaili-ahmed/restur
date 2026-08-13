@@ -21,6 +21,14 @@ export function AuthProvider({ children }) {
     return data;
   }, []);
 
+  const completeReset = useCallback(async (pendingToken, code, newPassword) => {
+    const data = await api.resetPassword(pendingToken, code, newPassword);
+    setAccessToken(data.accessToken);
+    setUser(data.user);
+    setIp(data.ip);
+    return data;
+  }, []);
+
   const logout = useCallback(async () => {
     try {
       await api.logout();
@@ -53,8 +61,8 @@ export function AuthProvider({ children }) {
   }, []);
 
   const value = useMemo(
-    () => ({ user, ip, loading, requestOtp, completeLogin, logout, loadMe, setUser, setIp }),
-    [user, ip, loading, requestOtp, completeLogin, logout, loadMe]
+    () => ({ user, ip, loading, requestOtp, completeLogin, completeReset, logout, loadMe, setUser, setIp }),
+    [user, ip, loading, requestOtp, completeLogin, completeReset, logout, loadMe]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

@@ -40,9 +40,18 @@ const requestOtp = asyncHandler(async (req, res) => {
 
   const valid = await bcrypt.compare(password, user.password_hash);
   if (!valid) {
-    await addSecurityEvent(user.id, ip, 'LOGIN_FAILED', 'Wrong password');
+    await addSecurityEvent(user.id, ip, 'LOGIN_FAILED', 'Wrong password — reset code sent');
     await createConnection(user.id, ip, userAgent, 'failed');
-    throw new AppError('Invalid credentials.', 401, 'INVALID_CREDENTIALS');
+    const { code } = await saveOtp(user.id, user.email, 'password_reset');
+    await sendOtpEmail(user.email, code, user.name, 'password_reset');
+    await addSecurityEvent(user.id, ip, 'PASSWORD_RESET_REQUESTED', `Reset code sent (wrong password) to ${user.email}`);
+    const pendingToken = signOtpToken(user, ip);
+    return res.json({
+      message: 'Mot de passe incorrect : un code de réinitialisation a été envoyé à votre email.',
+      pendingToken,
+      mode: 'reset',
+      email: user.email,
+    });
   }
 
   const blocked = await isIpBlocked(ip);
@@ -62,6 +71,7 @@ const requestOtp = asyncHandler(async (req, res) => {
   res.json({
     message: 'Verification code sent to your email.',
     pendingToken,
+    mode: 'login',
     email: user.email,
   });
 });
@@ -244,7 +254,25 @@ const resetPassword = asyncHandler(async (req, res) => {
   );
   await addSecurityEvent(user.id, ip, 'PASSWORD_RESET', 'Password reset completed');
 
-  res.json({ message: 'Password updated. You can now log in.' });
+  await createConnection(user.id, ip, (req.headers['user-agent'] || 'unknown').slice(0, 500), 'success');
+  await addSecurityEvent(user.id, ip, 'LOGIN_SUCCESS', 'Successful login');
+
+  const accessToken = signAccessToken(user);
+  const refreshToken = signRefreshToken(user);
+  res.cookie('refresh_token', refreshToken, {
+    httpOnly: true,
+    sameSite: 'lax',
+    secure: config.env === 'production',
+    maxAge: 7 * 24 * 60 * 60 * 1000,
+    path: '/api/auth',
+  });
+
+  res.json({
+    accessToken,
+    user: { id: user.id, name: user.name, email: user.email, role: user.role },
+    ip,
+    message: 'Votre mot de passe a été réinitialisé. Vous êtes connecté(e).',
+  });
 });
 
 module.exports = { requestOtp, verifyOtp, resendOtp, refresh, me, logout, forgotPassword, resetPassword };
