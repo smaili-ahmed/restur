@@ -14,8 +14,15 @@ if (config.smtp.user && config.smtp.pass) {
 
 const isEmailConfigured = () => !!transporter;
 
-async function sendOtpEmail(to, code, name) {
+async function sendOtpEmail(to, code, name, purpose = 'login') {
   const firstName = (name || '').split(' ')[0] || 'there';
+  const isReset = purpose === 'password_reset';
+  const subject = isReset
+    ? `🔑 Réinitialisation de votre mot de passe · ${code}`
+    : `🔐 Votre code de connexion · ${code}`;
+  const description = isReset
+    ? 'Votre code de réinitialisation de mot de passe. Il expirera dans'
+    : 'Votre code de connexion sécurisée. Il expirera dans';
   const html = `
     <div style="font-family:Arial,Helvetica,sans-serif;max-width:520px;margin:0 auto;background:#0a0f1e;color:#e8f6ff;border-radius:16px;overflow:hidden;border:1px solid #1b2740">
       <div style="background:linear-gradient(135deg,#00e5ff,#7c4dff);padding:18px 24px;color:#04121a">
@@ -24,7 +31,7 @@ async function sendOtpEmail(to, code, name) {
       <div style="padding:28px 24px">
         <h2 style="margin:0 0 10px;font-size:20px;color:#fff">Bonjour ${firstName} 👋</h2>
         <p style="margin:0 0 18px;font-size:14px;line-height:1.6;color:#a9bfd6">
-          Votre code de connexion sécurisée. Il expirera dans <strong>${config.otp.expiresMinutes} minutes</strong>.
+          ${description} <strong>${config.otp.expiresMinutes} minutes</strong>.
         </p>
         <div style="text-align:center;padding:18px;border-radius:12px;background:#101a30;border:1px dashed #00e5ff">
           <span style="font-size:34px;letter-spacing:10px;font-weight:700;color:#00e5ff;font-family:monospace">${code}</span>
@@ -39,7 +46,7 @@ async function sendOtpEmail(to, code, name) {
   const mail = {
     from: `"Le Gourmet" <${config.smtp.user}>`,
     to,
-    subject: `🔐 Votre code de connexion · ${code}`,
+    subject,
     html,
   };
 

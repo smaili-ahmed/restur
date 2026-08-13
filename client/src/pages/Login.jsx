@@ -5,7 +5,7 @@ import { Logo } from '../components/layout/Logo';
 import { Input } from '../components/ui/Input';
 import { Button } from '../components/ui/Button';
 import { useAuth } from '../context/AuthContext';
-import { ApiError } from '../api/client';
+import { api, ApiError } from '../api/client';
 import { ADMIN_PATH } from '../config';
 
 export default function Login() {
@@ -16,11 +16,13 @@ export default function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [code, setCode] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [pendingToken, setPendingToken] = useState('');
+  const [resetToken, setResetToken] = useState('');
   const [errors, setErrors] = useState({});
   const [serverError, setServerError] = useState(null);
   const [info, setInfo] = useState(null);
-  const [forgot, setForgot] = useState(false);
   const [loading, setLoading] = useState(false);
   const [resendIn, setResendIn] = useState(0);
   const codeRef = useRef(null);
@@ -30,7 +32,7 @@ export default function Login() {
   }, []);
 
   useEffect(() => {
-    if (step === 'otp' && codeRef.current) {
+    if ((step === 'otp' || step === 'reset') && codeRef.current) {
       codeRef.current.focus();
     }
   }, [step]);
@@ -51,12 +53,29 @@ export default function Login() {
     return Object.keys(e).length === 0;
   };
 
+  const validateForgot = () => {
+    const e = {};
+    if (!email.trim()) e.email = "L'adresse email est requise.";
+    else if (!/^\S+@\S+\.\S+$/.test(email)) e.email = 'Entrez une adresse email valide.';
+    setErrors(e);
+    return Object.keys(e).length === 0;
+  };
+
+  const validateReset = () => {
+    const e = {};
+    if (!/^\d{6}$/.test(code)) e.code = 'Entrez le code à 6 chiffres.';
+    if (!newPassword) e.newPassword = 'Le nouveau mot de passe est requis.';
+    else if (newPassword.length < 6) e.newPassword = 'Le mot de passe doit contenir au moins 6 caractères.';
+    if (confirmPassword !== newPassword) e.confirmPassword = 'Les mots de passe ne correspondent pas.';
+    setErrors(e);
+    return Object.keys(e).length === 0;
+  };
+
   const handleRequestOtp = async (ev) => {
     ev.preventDefault();
     if (!validateCredentials() || loading) return;
     setLoading(true);
     setServerError(null);
-    setForgot(false);
     setInfo(null);
     try {
       const data = await requestOtp(email.trim(), password);
@@ -103,8 +122,76 @@ export default function Login() {
     setLoading(true);
     setServerError(null);
     try {
-      const { api } = await import('../api/client');
       await api.resendOtp(pendingToken);
+      setInfo('Un nouveau code a été envoyé.');
+      setCode('');
+      setResendIn(30);
+    } catch (err) {
+      setServerError(err.message || 'Le renvoi a échoué.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const openForgot = () => {
+    setStep('forgot');
+    setServerError(null);
+    setInfo(null);
+    setErrors({});
+  };
+
+  const handleForgot = async (ev) => {
+    ev.preventDefault();
+    if (!validateForgot() || loading) return;
+    setLoading(true);
+    setServerError(null);
+    setInfo(null);
+    try {
+      const data = await api.forgotPassword(email.trim());
+      if (data.pendingToken) {
+        setResetToken(data.pendingToken);
+        setStep('reset');
+        setInfo(`Un code de réinitialisation a été envoyé à ${email.trim()}.`);
+        setResendIn(30);
+      } else {
+        setInfo(data.message || "Si un compte existe avec cet email, un code a été envoyé.");
+      }
+    } catch (err) {
+      setServerError(err.message || 'La demande a échoué.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleReset = async (ev) => {
+    ev.preventDefault();
+    if (!validateReset() || loading) return;
+    setLoading(true);
+    setServerError(null);
+    setInfo(null);
+    try {
+      const data = await api.resetPassword(resetToken, code.trim(), newPassword);
+      setPassword('');
+      setCode('');
+      setNewPassword('');
+      setConfirmPassword('');
+      setStep('credentials');
+      setInfo(data.message || 'Votre mot de passe a été réinitialisé. Vous pouvez vous connecter.');
+    } catch (err) {
+      setServerError(err.message || 'La réinitialisation a échoué.');
+      setCode('');
+      if (codeRef.current) codeRef.current.focus();
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleResendReset = async () => {
+    if (loading || resendIn > 0) return;
+    setLoading(true);
+    setServerError(null);
+    try {
+      await api.forgotPassword(email.trim());
       setInfo('Un nouveau code a été envoyé.');
       setCode('');
       setResendIn(30);
@@ -119,8 +206,31 @@ export default function Login() {
     setStep('credentials');
     setServerError(null);
     setInfo(null);
-    setForgot(false);
     setCode('');
+    setNewPassword('');
+    setConfirmPassword('');
+  };
+
+  const backToForgot = () => {
+    setStep('forgot');
+    setServerError(null);
+    setInfo(null);
+    setCode('');
+    setNewPassword('');
+    setConfirmPassword('');
+  };
+
+  const titles = {
+    credentials: 'Connexion',
+    otp: 'Vérification',
+    forgot: 'Mot de passe oublié ?',
+    reset: 'Réinitialisation',
+  };
+  const subtitles = {
+    credentials: 'Accédez à votre espace membre Le Gourmet',
+    otp: 'Entrez le code reçu par email',
+    forgot: 'Entrez votre email, un code sera envoyé dans votre boîte',
+    reset: 'Entrez le code reçu et votre nouveau mot de passe',
   };
 
   return (
@@ -138,10 +248,8 @@ export default function Login() {
           <Logo brand="restaurant" />
         </div>
 
-        <h1 className="login-title">{step === 'otp' ? 'Vérification' : 'Connexion'}</h1>
-        <p className="login-sub">
-          {step === 'otp' ? 'Entrez le code reçu par email' : 'Accédez à votre espace membre Le Gourmet'}
-        </p>
+        <h1 className="login-title">{titles[step]}</h1>
+        <p className="login-sub">{subtitles[step]}</p>
 
         <AnimatePresence mode="wait">
           {step === 'credentials' ? (
@@ -164,18 +272,14 @@ export default function Login() {
                     ⚠ {serverError}
                   </motion.div>
                 )}
-                {forgot && (
+                {info && (
                   <motion.div
-                    className="login-alert login-alert-info"
+                    className="login-alert login-alert-success"
                     initial={{ opacity: 0, height: 0 }}
                     animate={{ opacity: 1, height: 'auto' }}
                     exit={{ opacity: 0, height: 0 }}
                   >
-                    ℹ Pour réinitialiser votre mot de passe, contactez l'administrateur à{' '}
-                    <a href="mailto:contact@legourmet.fr" style={{ color: 'inherit', fontWeight: 600 }}>
-                      contact@legourmet.fr
-                    </a>
-                    .
+                    ✓ {info}
                   </motion.div>
                 )}
               </AnimatePresence>
@@ -205,7 +309,7 @@ export default function Login() {
                 <label className="login-check">
                   <input type="checkbox" /> Se souvenir de moi
                 </label>
-                <button type="button" className="login-link" onClick={() => setForgot((f) => !f)}>
+                <button type="button" className="login-link" onClick={openForgot}>
                   Mot de passe oublié&nbsp;?
                 </button>
               </div>
@@ -214,7 +318,7 @@ export default function Login() {
                 {loading ? 'Envoi du code…' : 'Se connecter'}
               </Button>
             </motion.form>
-          ) : (
+          ) : step === 'otp' ? (
             <motion.form
               key="otp"
               onSubmit={handleVerify}
@@ -274,6 +378,145 @@ export default function Login() {
                   type="button"
                   className="login-link"
                   onClick={handleResend}
+                  disabled={resendIn > 0 || loading}
+                  style={{ color: resendIn > 0 ? '#9ca3af' : undefined, cursor: resendIn > 0 ? 'not-allowed' : 'pointer' }}
+                >
+                  {resendIn > 0 ? `Renvoyer (${resendIn}s)` : 'Renvoyer le code'}
+                </button>
+              </div>
+            </motion.form>
+          ) : step === 'forgot' ? (
+            <motion.form
+              key="forgot"
+              onSubmit={handleForgot}
+              initial={{ opacity: 0, x: -12 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -12 }}
+              noValidate
+            >
+              <AnimatePresence>
+                {serverError && (
+                  <motion.div
+                    className="login-alert login-alert-error"
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: 'auto' }}
+                    exit={{ opacity: 0, height: 0 }}
+                  >
+                    ⚠ {serverError}
+                  </motion.div>
+                )}
+                {info && (
+                  <motion.div
+                    className="login-alert login-alert-success"
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: 'auto' }}
+                    exit={{ opacity: 0, height: 0 }}
+                  >
+                    ✓ {info}
+                  </motion.div>
+                )}
+              </AnimatePresence>
+
+              <div className="login-fields">
+                <Input
+                  label="Adresse email"
+                  type="email"
+                  placeholder="votre@gmail.com"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  error={errors.email}
+                  autoComplete="email"
+                />
+              </div>
+
+              <Button type="submit" size="lg" loading={loading} className="login-btn" style={{ width: '100%' }}>
+                {loading ? 'Envoi du code…' : 'Envoyer le code de réinitialisation'}
+              </Button>
+
+              <div className="login-row login-row-otp">
+                <button type="button" className="login-link" onClick={backToCredentials}>
+                  ← Retour à la connexion
+                </button>
+              </div>
+            </motion.form>
+          ) : (
+            <motion.form
+              key="reset"
+              onSubmit={handleReset}
+              initial={{ opacity: 0, x: 12 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: 12 }}
+              noValidate
+            >
+              <AnimatePresence>
+                {info && (
+                  <motion.div
+                    className="login-alert login-alert-success"
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: 'auto' }}
+                    exit={{ opacity: 0, height: 0 }}
+                  >
+                    ✓ {info}
+                  </motion.div>
+                )}
+                {serverError && (
+                  <motion.div
+                    className="login-alert login-alert-error"
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: 'auto' }}
+                    exit={{ opacity: 0, height: 0 }}
+                  >
+                    ⚠ {serverError}
+                  </motion.div>
+                )}
+              </AnimatePresence>
+
+              <div className="login-fields">
+                <Input
+                  label="Code à 6 chiffres reçu par email"
+                  inputMode="numeric"
+                  pattern="[0-9]*"
+                  maxLength={6}
+                  placeholder="••••••"
+                  value={code}
+                  onChange={(e) => setCode(e.target.value.replace(/\D/g, ''))}
+                  error={errors.code}
+                  autoComplete="one-time-code"
+                  ref={codeRef}
+                  style={{ fontSize: 24, letterSpacing: 10, textAlign: 'center' }}
+                />
+                <Input
+                  label="Nouveau mot de passe"
+                  type="password"
+                  placeholder="Au moins 6 caractères"
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  error={errors.newPassword}
+                  autoComplete="new-password"
+                />
+                <Input
+                  label="Confirmer le nouveau mot de passe"
+                  type="password"
+                  placeholder="Reprenez le même mot de passe"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  error={errors.confirmPassword}
+                  autoComplete="new-password"
+                />
+              </div>
+
+              <Button type="submit" size="lg" loading={loading} className="login-btn" style={{ width: '100%' }}>
+                {loading ? 'Réinitialisation…' : 'Réinitialiser le mot de passe'}
+              </Button>
+
+              <div className="login-row login-row-otp">
+                <button type="button" className="login-link" onClick={backToForgot}>
+                  ← Changer d'email
+                </button>
+                <button
+                  type="button"
+                  className="login-link"
+                  onClick={handleResendReset}
                   disabled={resendIn > 0 || loading}
                   style={{ color: resendIn > 0 ? '#9ca3af' : undefined, cursor: resendIn > 0 ? 'not-allowed' : 'pointer' }}
                 >

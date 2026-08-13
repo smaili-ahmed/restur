@@ -39,4 +39,24 @@ router.post('/refresh', authController.refresh);
 router.get('/me', authRequired, authController.me);
 router.post('/logout', authRequired, authController.logout);
 
+router.post(
+  '/forgot-password',
+  ipRequest,
+  loginLimiter,
+  validate([body('email').trim().isEmail().withMessage('A valid email is required.')]),
+  authController.forgotPassword
+);
+
+router.post(
+  '/reset-password',
+  ipRequest,
+  otpLimiter,
+  validate([
+    body('pendingToken').isString().withMessage('A pending token is required.'),
+    body('code').matches(/^\d{6}$/).withMessage('The code must be 6 digits.'),
+    body('newPassword').isLength({ min: 6 }).withMessage('Password must be at least 6 characters.'),
+  ]),
+  authController.resetPassword
+);
+
 module.exports = router;

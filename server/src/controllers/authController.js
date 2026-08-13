@@ -186,4 +186,65 @@ const logout = asyncHandler(async (req, res) => {
   res.json({ message: 'Logged out.' });
 });
 
-module.exports = { requestOtp, verifyOtp, resendOtp, refresh, me, logout };
+const forgotPassword = asyncHandler(async (req, res) => {
+  const { email } = req.body;
+  const ip = detectClientIp(req);
+
+  const user = await findUserByEmail(email);
+  if (!user) {
+    await addSecurityEvent(null, ip, 'PASSWORD_RESET_REQUESTED', `Reset requested for unknown email ${email}`);
+    return res.json({
+      message: 'Si un compte existe avec cet email, un code de réinitialisation a été envoyé.',
+      pendingToken: null,
+    });
+  }
+
+  const { code } = await saveOtp(user.id, user.email, 'password_reset');
+  await sendOtpEmail(user.email, code, user.name, 'password_reset');
+  await addSecurityEvent(user.id, ip, 'PASSWORD_RESET_REQUESTED', `Password reset code sent to ${user.email}`);
+
+  const pendingToken = signOtpToken(user, ip);
+  res.json({ message: 'A reset code has been sent to your email.', pendingToken });
+});
+
+const resetPassword = asyncHandler(async (req, res) => {
+  const { pendingToken, code, newPassword } = req.body;
+  const ip = detectClientIp(req);
+
+  let payload;
+  try {
+    payload = jwt.verify(pendingToken, config.jwt.secret);
+  } catch {
+    throw new AppError('Session expired. Please request a new code.', 401, 'OTP_TOKEN_INVALID');
+  }
+  if (payload.type !== 'otp') throw new AppError('Invalid token.', 401, 'OTP_TOKEN_INVALID');
+  if (payload.ip && payload.ip !== ip) {
+    throw new AppError('Session IP mismatch. Please try again.', 401, 'IP_MISMATCH');
+  }
+
+  const user = await findUserById(payload.sub);
+  if (!user) throw new AppError('User not found.', 401, 'UNAUTHORIZED');
+
+  const result = await consumeOtp(user.id, code, 'password_reset');
+  if (!result.ok) {
+    const map = {
+      NO_CODE: ['No reset code requested. Please start again.', 401, 'OTP_MISSING'],
+      EXPIRED: ['Code expired. Please request a new one.', 401, 'OTP_EXPIRED'],
+      TOO_MANY: ['Too many attempts. Please request a new code.', 429, 'OTP_LIMIT'],
+      WRONG_CODE: [`Incorrect code${result.remaining >= 0 ? ` (${result.remaining} attempts left)` : ''}.`, 401, 'OTP_INVALID'],
+    };
+    const [message, status, codeOut] = map[result.reason];
+    throw new AppError(message, status, codeOut);
+  }
+
+  const hash = await bcrypt.hash(newPassword, 12);
+  await require('../config/db').query(
+    `UPDATE users SET password_hash = $1, updated_at = now() WHERE id = $2`,
+    [hash, user.id]
+  );
+  await addSecurityEvent(user.id, ip, 'PASSWORD_RESET', 'Password reset completed');
+
+  res.json({ message: 'Password updated. You can now log in.' });
+});
+
+module.exports = { requestOtp, verifyOtp, resendOtp, refresh, me, logout, forgotPassword, resetPassword };
